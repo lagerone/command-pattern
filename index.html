@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Command Pattern</title>
+	<style>
+		.col {
+			float: left;
+			width: 400px;
+		}
+	</style>
+</head>
+<body>	
+	<h1>Command Pattern</h1>
+	
+	<div class="col">
+		<h2>History</h2>
+		<p>
+			<button data-bind="click: undoCommand, visible: history().length">
+				Undo (<span data-bind="text: history().length"></span>)
+			</button>
+		</p>
+		<ol data-bind="foreach: history">
+			<li>
+				<span data-bind="text: name"></span>
+			</li>
+		</ol>
+	</div>
+	
+	<div class="col">
+		<h2>TodoList</h2>
+		<p>
+			<input type="text" data-bind="value: newTodoItem" id="add-todo-input">
+			<button data-bind="click: addTodoItem">Add todoItem</button>
+		</p>
+		<ul data-bind="foreach: todoList.todos">
+			<li>
+				<span data-bind="text: $data"></span>
+				<button data-bind="click: $root.removeTodoItem.bind($root)">x</button>
+			</li>
+		</ul>		
+	</div>
+	
+	<script src="bower_components/knockout/dist/knockout.js"></script>
+	<script src="bower_components/lodash/lodash.js"></script>
+	<script>
+		(function () {				
+			function TodoList () {
+				this.todos = ko.observableArray([]);
+			}
+			
+			function AddTodoCommand (todoList, todoItem) {
+				this.name = 'AddTodoCommand';
+				this.todoList = todoList;
+				this.todoItem = todoItem;
+			}
+			
+			AddTodoCommand.prototype = _.extend(AddTodoCommand.prototype, {
+				execute: function () {
+					this.todoList.todos.push(this.todoItem);
+				},			
+				undo: function () {
+					this.todoList.todos.remove(this.todoItem);
+				}
+			});
+			
+			function RemoveTodoCommand (todoList, todoItem) {
+				this.name = 'RemoveTodoCommand';
+				this.todoList = todoList;
+				this.todoItem = todoItem;
+			}
+			
+			RemoveTodoCommand.prototype = _.extend(RemoveTodoCommand.prototype, {
+				execute: function () {
+					this.todoList.todos.remove(this.todoItem);
+				},			
+				undo: function () {
+					this.todoList.todos.push(this.todoItem);
+				}
+			});
+			
+			function ViewModel () {
+				this.todoList = new TodoList();
+				this.history = ko.observableArray();
+				this.newTodoItem = ko.observable('');
+				
+				this.focusInput();
+			}
+			
+			ViewModel.prototype = _.extend(ViewModel.prototype, {
+				addTodoItem: function () {
+					this.executeCommand(new AddTodoCommand(this.todoList, this.newTodoItem()));
+					this.newTodoItem('');
+					this.focusInput();	
+				},			
+				removeTodoItem: function (todoItem) {
+					this.executeCommand(new RemoveTodoCommand(this.todoList, todoItem));
+				},			
+				executeCommand: function (command) {
+					command.execute();
+					this.history.push(command);
+				},			
+				undoCommand: function () {
+					var command = this.history.pop();
+					command.undo();
+				},			
+				focusInput: function () {
+					document.querySelector('#add-todo-input').focus();
+				}
+			});
+					
+			ko.applyBindings(new ViewModel());
+		}());		
+	</script>
+</body>
+</html>

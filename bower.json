@@ -1,0 +1,19 @@
+{
+  "name": "command-pattern",
+  "version": "0.0.0",
+  "authors": [
+    "Daniel Lager <daniel.lager@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "knockout": "~3.3.0",
+    "lodash": "~3.10.1"
+  }
+}
